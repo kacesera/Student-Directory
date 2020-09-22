@@ -2,12 +2,12 @@ def input_students
   puts "Please enter the names of the students"
   puts "to finish, just hit return twice"
   students = []
-  name = get.chomp
+  name = gets.chomp
 
   while !name.empty? do
     students << {name: name, cohort: :november}
     puts "Now we have #{students.count} students"
-    nem = gets.chomp
+    name = gets.chomp
   end
   students
 end
@@ -18,8 +18,9 @@ def print_header
 end
 
 def print(people)
-  people.each do |person|
-    puts "#{person[:name]} (#{person[:cohort]} cohort)"
+  people.each.with_index do |person, index|
+    place = index + 1
+    puts "#{place}. #{person[:name]} (#{person[:cohort]} cohort)"
   end
 end
 
