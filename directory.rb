@@ -250,12 +250,10 @@ def try_load_students
 end
 
 def load_students
-  file = File.open(@filename, "r")
-  file.readlines.each do |line|
+  File.foreach(@filename) do |line|
     name, cohort, birthdate, hobby = line.chomp.split(',')
     add_students(name, cohort, birthdate, hobby)
   end
-  file.close
 end
 
 def try_save_students
@@ -274,18 +272,17 @@ def try_save_students
 end
 
 def save_students
-  file = File.open(@filename, "w")
-  @students.each do |student|
-    student_data = [
-      student[:name],
-      student[:cohort],
-      student[:birthdate],
-      student[:hobby]
-    ]
-    csv_line = student_data.join(",")
-    file.puts csv_line
+  File.open(@filename, "w") do |file|
+    @students.each do |student|
+      student_data = [
+        student[:name],
+        student[:cohort],
+        student[:birthdate],
+        student[:hobby]
+      ]
+      file << student_data.join(",")
+    end
   end
-  file.close
 end
 
 interactive_menu
