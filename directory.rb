@@ -1,24 +1,31 @@
+@students = []
+@months = [
+  {month: :january, days: 31},
+  {month: :february, days: 28},
+  {month: :march, days: 31},
+  {month: :april, days: 30},
+  {month: :may, days: 31},
+  {month: :june, days: 30},
+  {month: :july, days: 31},
+  {month: :august, days: 31},
+  {month: :september, days: 30},
+  {month: :october, days: 31},
+  {month: :november, days: 30},
+  {month: :december, days: 31},
+]
+
 def input_students
   puts ""
   puts "Please enter the names of the students:".center(50)
   puts "** To finish, just hit return twice **".center(50)
   puts "-------------".center(50)
-  @students = []
   name = gets.chomp
-
-  months = ["january", "february", "march", "april",
-            "may", "june", "july", "august",
-            "september", "october", "november", "december"]
 
   while !name.empty? do
     cohort = nil
     name = proper_capitalize(name)
 
-    while !months.include?(cohort)
-      if cohort == nil
-        cohort = 'november'
-      end
-
+    while !month_included?(cohort)
       puts "Please enter month of cohort:".center(50)
       cohort = gets.chomp.downcase
     end
@@ -44,6 +51,14 @@ def input_students
     puts ""
     name = gets.chomp
   end
+end
+
+def month_included?(cohort)
+  return false if cohort == nil
+  @months.each do |month|
+    return true if month[:month] == cohort.to_sym
+  end
+  false
 end
 
 def proper_capitalize(name)
@@ -78,21 +93,6 @@ def valid(date)
 
   is_leap?(year)
 
-  @months = [
-    {month: :january, days: 31},
-    {month: :february, days: 28},
-    {month: :march, days: 31},
-    {month: :april, days: 30},
-    {month: :may, days: 31},
-    {month: :june, days: 30},
-    {month: :july, days: 31},
-    {month: :august, days: 31},
-    {month: :september, days: 30},
-    {month: :october, days: 31},
-    {month: :november, days: 30},
-    {month: :december, days: 31},
-  ]
-
   if date.size != 8 || month > 12 || month < 0 || year.to_s.size != 4
     return false
   elsif day > @months[index][:days] || day < 1
@@ -105,6 +105,8 @@ end
 def is_leap?(year)
   if year % 4 == 0 && year % 100 != 0 && year % 400 == 0
     @months[1][:days] = 29
+  else
+    @months[1][:days] = 28
   end
 end
 
@@ -122,14 +124,11 @@ end
 
 def get_students
   student_num = 1
-  month_num = 0
-  #month = get_next_month(month_num)
 
   if @students.count == 1
     print_cohort_header(@students[0][:cohort])
     print_student(@students[0], student_num)
   else
-    #until month_num == 12
     @months.each do |month|
       @students.each do |student|
         cohort = student[:cohort]
@@ -143,9 +142,7 @@ def get_students
         end
 
         if student == @students.last
-          #month_num += 1
           student_num = 1
-          #month = get_next_month(month_num)
         end
       end
     end
@@ -190,6 +187,8 @@ def process(selection)
       show_students
     when "3"
       save_students
+    when "4"
+      load_students
     when "9"
       exit
     else
@@ -204,6 +203,7 @@ def print_menu
   puts "1. Input the students"
   puts "2. Show the students"
   puts "3. Save the list to students.csv"
+  puts "4. Load the list from students.csv"
   puts "9. Exit"
   puts ""
 end
@@ -214,10 +214,29 @@ def show_students
   print_footer
 end
 
+def load_students
+  file = File.open("students.csv", "r")
+  file.readlines.each do |line|
+    name, cohort, birthdate, hobby = line.chomp.split(',')
+    @students << {
+      name: name,
+      cohort: cohort.to_sym,
+      birthdate: birthdate.to_sym,
+      hobby: hobby
+    }
+  end
+  file.close
+end
+
 def save_students
   file = File.open("students.csv", "w")
   @students.each do |student|
-    student_data = [student[:name], student[:cohort]]
+    student_data = [
+      student[:name],
+      student[:cohort],
+      student[:birthdate],
+      student[:hobby]
+    ]
     csv_line = student_data.join(",")
     file.puts csv_line
   end
