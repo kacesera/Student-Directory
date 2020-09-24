@@ -1,3 +1,4 @@
+@filename = ARGV.first
 @students = []
 @months = [
   {month: :january, days: 31},
@@ -13,6 +14,17 @@
   {month: :november, days: 30},
   {month: :december, days: 31},
 ]
+def add_students(name, cohort, birthdate, hobby)
+  person = {
+    name: name,
+    cohort: cohort.to_sym,
+    birthdate: birthdate.to_sym,
+    hobby: hobby
+  }
+  if !person_included?(person)
+    @students << person
+  end
+end
 
 def input_students
   puts ""
@@ -33,30 +45,37 @@ def input_students
     puts "Enter their hobby:".center(50)
     hobby = STDIN.gets.chomp.downcase
 
-    birth_date = get_birthdate
+    birthdate = get_birthdate
 
-    @students << {
-      name: name,
-      cohort: cohort.to_sym,
-      birthdate: birth_date.to_sym,
-      hobby: hobby
-    }
+    add_students(name, cohort, birthdate, hobby)
+    print_num_students
 
-    add_s = ""
-    add_s = "s" if @students.count > 1
-
-    puts ""
-    puts "Now we have #{@students.count} student#{add_s}".center(50)
-    puts "Please enter another student, or hit return to finish".center(50)
-    puts ""
     name = STDIN.gets.chomp
   end
+end
+
+def print_num_students
+  add_s = ""
+  add_s = "s" if @students.count > 1
+
+  puts ""
+  puts "Now we have #{@students.count} student#{add_s}".center(50)
+  puts "Please enter another student, or hit return to finish".center(50)
+  puts ""
 end
 
 def month_included?(cohort)
   return false if cohort.nil?
   @months.each do |month|
     return true if month[:month] == cohort.to_sym
+  end
+  false
+end
+
+def person_included?(person)
+  return false if @students.nil?
+  @students.each do |student|
+    return true if student == person
   end
   false
 end
@@ -187,9 +206,9 @@ def process(selection)
     when "2"
       show_students
     when "3"
-      save_students
+      try_save_students
     when "4"
-      load_students
+      try_load_students
     when "9"
       exit
     else
@@ -203,8 +222,8 @@ def print_menu
   puts "-------------"
   puts "1. Input the students"
   puts "2. Show the students"
-  puts "3. Save the list to students.csv"
-  puts "4. Load the list from students.csv"
+  puts "3. Save your student list"
+  puts "4. Load list from a file"
   puts "9. Exit"
   puts ""
 end
@@ -216,33 +235,46 @@ def show_students
 end
 
 def try_load_students
-  filename = ARGV.first
-  return if filename.nil?
-  if File.exists?(filename)
-    load_students(filename)
-    puts "Loaded #{@students.count} from #{filename}"
+  puts "Which file would you like to load from? Type 'none' if starting from scratch"
+  @filename = STDIN.gets.chomp.downcase
+
+  return if @filename == 'none'
+
+  if File.exists?(@filename)
+    load_students
+    puts "Loaded #{@students.count} from #{@filename}"
   else
-    puts "Sorry, #{filename} doesn't exist."
+    puts "Sorry, #{@filename} doesn't exist."
     exit
   end
 end
 
-def load_students(filename = "students.csv")
-  file = File.open(filename, "r")
+def load_students
+  file = File.open(@filename, "r")
   file.readlines.each do |line|
     name, cohort, birthdate, hobby = line.chomp.split(',')
-    @students << {
-      name: name,
-      cohort: cohort.to_sym,
-      birthdate: birthdate.to_sym,
-      hobby: hobby
-    }
+    add_students(name, cohort, birthdate, hobby)
   end
   file.close
 end
 
+def try_save_students
+  puts "Type 'new' to save a few file, or press enter to save to your loaded file."
+  file_type = STDIN.gets.chomp
+
+  if file_type == 'new'
+    puts "Enter a file name"
+    @filename = "#{STDIN.gets.chomp}.csv"
+  elsif file_type.empty? && @filename == 'none'
+    puts "There is no loaded file. Please enter a filename:"
+    @filename = "#{STDIN.gets.chomp}.csv"
+  end
+  save_students
+  puts "#{@students.count} saved to #{@filename}"
+end
+
 def save_students
-  file = File.open("students.csv", "w")
+  file = File.open(@filename, "w")
   @students.each do |student|
     student_data = [
       student[:name],
