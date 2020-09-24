@@ -19,7 +19,7 @@ def input_students
   puts "Please enter the names of the students:".center(50)
   puts "** To finish, just hit return twice **".center(50)
   puts "-------------".center(50)
-  name = gets.chomp
+  name = STDIN.gets.chomp
 
   while !name.empty? do
     cohort = nil
@@ -27,11 +27,11 @@ def input_students
 
     while !month_included?(cohort)
       puts "Please enter month of cohort:".center(50)
-      cohort = gets.chomp.downcase
+      cohort = STDIN.gets.chomp.downcase
     end
 
     puts "Enter their hobby:".center(50)
-    hobby = gets.chomp.downcase
+    hobby = STDIN.gets.chomp.downcase
 
     birth_date = get_birthdate
 
@@ -49,12 +49,12 @@ def input_students
     puts "Now we have #{@students.count} student#{add_s}".center(50)
     puts "Please enter another student, or hit return to finish".center(50)
     puts ""
-    name = gets.chomp
+    name = STDIN.gets.chomp
   end
 end
 
 def month_included?(cohort)
-  return false if cohort == nil
+  return false if cohort.nil?
   @months.each do |month|
     return true if month[:month] == cohort.to_sym
   end
@@ -74,7 +74,7 @@ def get_birthdate
 
   until valid(date)
     puts "Enter their date of birth (DD/MM/YYYY)".center(50)
-    date = gets.chomp.split("/").join
+    date = STDIN.gets.chomp.split("/").join
   end
 
   formatted_date = date.chars.insert(2, "/")
@@ -84,7 +84,7 @@ def get_birthdate
 end
 
 def valid(date)
-  return false if date == nil
+  return false if date.nil?
 
   day = date[0..1].to_i
   month = date[2..3].to_i
@@ -115,7 +115,7 @@ def print_header
 end
 
 def print_students_list
-  if @students == nil || @students.empty?
+  if @students.nil? || @students.empty?
     puts "There are currently 0 students".center(100)
   else
     get_students
@@ -165,7 +165,7 @@ end
 
 def print_footer
   add_s = ""
-  if @students != nil
+  if !@students.nil?
     add_s = "s" if @students.count != 1
     puts "-------------".center(100)
     puts "Overall, we have #{@students.count} great student#{add_s}".center(100)
@@ -173,9 +173,10 @@ def print_footer
 end
 
 def interactive_menu
+  try_load_students
   loop do
     print_menu
-    process(gets.chomp)
+    process(STDIN.gets.chomp)
   end
 end
 
@@ -214,8 +215,20 @@ def show_students
   print_footer
 end
 
-def load_students
-  file = File.open("students.csv", "r")
+def try_load_students
+  filename = ARGV.first
+  return if filename.nil?
+  if File.exists?(filename)
+    load_students(filename)
+    puts "Loaded #{@students.count} from #{filename}"
+  else
+    puts "Sorry, #{filename} doesn't exist."
+    exit
+  end
+end
+
+def load_students(filename = "students.csv")
+  file = File.open(filename, "r")
   file.readlines.each do |line|
     name, cohort, birthdate, hobby = line.chomp.split(',')
     @students << {
